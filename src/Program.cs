@@ -11,6 +11,8 @@ namespace CSharpFunctionalExtensions.Examples
 			RunValueObjectsExamples();
 
 			RunMaybeExamples();
+
+			RunBasicResultExamples();
 		}
 
 		private static void RunValueObjectsExamples()
@@ -99,6 +101,44 @@ namespace CSharpFunctionalExtensions.Examples
 			Console.WriteLine($"Action will be executed on found customer.");
 			foundCustomer.Execute(printCustomerName);
 			notFoundCustomer.Execute(printCustomerName);
+			Console.WriteLine();
+		}
+
+		private static void RunBasicResultExamples()
+		{
+			Console.WriteLine("Basic result examples:");
+			Console.WriteLine();
+
+			var successfulResult = Result.Ok();
+			var failedResult = Result.Fail("Major failure");
+
+			var successfulResultWithValue = Result.Ok("value");
+			var failedResultWithValue = Result.Fail<string>("Major failure with value");
+
+			Console.WriteLine($"Result without value is success: {successfulResult.IsSuccess}");
+			Console.WriteLine($"Result without value is failure: {failedResult.IsFailure}, with message: {failedResult.Error}");
+			Console.WriteLine($"Result with value is success: {successfulResultWithValue.IsSuccess}, with value: {successfulResultWithValue.Value}");
+			Console.WriteLine($"Result with value is failure: {failedResultWithValue.IsFailure}, with message: {failedResultWithValue.Error}");
+			Console.WriteLine();
+
+			Result successfulResultWithoutValue = successfulResultWithValue;
+			Result failedResultWithoutValue = failedResultWithValue;
+			Console.WriteLine($"Implicit conversion of successful result with value to result is success: {successfulResultWithoutValue.IsSuccess}");
+			Console.WriteLine($"Implicit conversion of failed result with value to result is failure: {failedResultWithoutValue.IsFailure}");
+			Console.WriteLine();
+
+			var resultFromAllSuccessfulResults = Result.FirstFailureOrSuccess(successfulResult, successfulResultWithValue);
+			var resultFromResultsWithOneFailure = Result.FirstFailureOrSuccess(successfulResult, failedResult);
+			Console.WriteLine($"All successful results will give success: {resultFromAllSuccessfulResults.IsSuccess}");
+			Console.WriteLine($"At least one failure result will give failure: {resultFromResultsWithOneFailure.IsFailure}, with message: {resultFromResultsWithOneFailure.Error}");
+			Console.WriteLine();
+
+			var combinedAllSuccessfulResults = Result.Combine(successfulResult, successfulResultWithoutValue);
+			var combinedResultsWithFailures = Result.Combine(successfulResult, failedResult, failedResultWithValue);
+			var combinedResultsWithFailuresUsingCustomSeparator = Result.Combine(" | ", successfulResultWithValue, failedResult, failedResultWithValue);
+			Console.WriteLine($"All successful results combined will give success: {combinedAllSuccessfulResults.IsSuccess}");
+			Console.WriteLine($"Combined results with failures will give failure: {combinedResultsWithFailures.IsFailure}, with message: {combinedResultsWithFailures.Error}");
+			Console.WriteLine($"Combined results with failures will give failure: {combinedResultsWithFailuresUsingCustomSeparator.IsFailure}, with message (using custom separator): {combinedResultsWithFailuresUsingCustomSeparator.Error}");
 			Console.WriteLine();
 		}
 	}
