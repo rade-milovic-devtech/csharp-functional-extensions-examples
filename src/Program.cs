@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions.Examples.Maybe;
 using CSharpFunctionalExtensions.Examples.Results;
 using CSharpFunctionalExtensions.Examples.ValueObject;
 using System;
+using System.Threading.Tasks;
 
 namespace CSharpFunctionalExtensions.Examples
 {
@@ -16,6 +17,8 @@ namespace CSharpFunctionalExtensions.Examples
 			RunBasicResultExamples();
 
 			RunAdvancedResultExamples();
+
+			RunAsyncResultExamples().GetAwaiter().GetResult();
 		}
 
 		private static void RunValueObjectsExamples()
@@ -162,6 +165,43 @@ namespace CSharpFunctionalExtensions.Examples
 			Console.WriteLine($"Valid user principal name is created successfully: {validUserPrincipalNameResultIsSuccessful}");
 			Console.WriteLine($"Invalid user principal name is created successfully: {invalidUserPrincipalNameResultIsSuccessful}");
 			Console.WriteLine();
+		}
+
+		private static async Task RunAsyncResultExamples()
+		{
+			var user = new User(UserPrincipalName.Create("magenta@devtechgroup.onmicrosoft.com").Value, "Magenta Team");
+
+			var usersRepository = new UsersRepository();
+			var successfulUserCreationTask = usersRepository.Add(user);
+			var failedUserCreationTask = usersRepository.Add(user);
+
+			var successfulUserMessageCreation = await CreateUserCreationMessageFrom(successfulUserCreationTask);
+
+			var failedUserMessageCreation = await CreateUserCreationMessageFrom(failedUserCreationTask);
+
+			Console.WriteLine("Asynchronous result examples:");
+			Console.WriteLine();
+
+			Console.WriteLine($"First creation of user completed. Result message: {successfulUserMessageCreation}");
+			Console.WriteLine($"Second creation of user completed. Result message: {failedUserMessageCreation}");
+			Console.WriteLine();
+		}
+
+		private static async Task<string> CreateUserCreationMessageFrom(Task<Result> userCreationResultTask)
+		{
+			return await userCreationResultTask
+				.OnSuccess(() => "Successful user creation.")
+				.OnFailure(() => Task.FromResult("User creation failed."))
+				.OnBoth(AppendCompletionMessageTo);
+		}
+
+		private static string AppendCompletionMessageTo(Result<string> userCreationResultMessage)
+		{
+			var resultMessage = (userCreationResultMessage.IsSuccess
+				? userCreationResultMessage.Value
+				: userCreationResultMessage.Error);
+
+			return $"{resultMessage} -> User creation completed.";
 		}
 	}
 }
