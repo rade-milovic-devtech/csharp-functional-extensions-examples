@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions.Examples.Maybe;
+using CSharpFunctionalExtensions.Examples.Results;
 using CSharpFunctionalExtensions.Examples.ValueObject;
 using System;
 
@@ -13,6 +14,8 @@ namespace CSharpFunctionalExtensions.Examples
 			RunMaybeExamples();
 
 			RunBasicResultExamples();
+
+			RunAdvancedResultExamples();
 		}
 
 		private static void RunValueObjectsExamples()
@@ -139,6 +142,25 @@ namespace CSharpFunctionalExtensions.Examples
 			Console.WriteLine($"All successful results combined will give success: {combinedAllSuccessfulResults.IsSuccess}");
 			Console.WriteLine($"Combined results with failures will give failure: {combinedResultsWithFailures.IsFailure}, with message: {combinedResultsWithFailures.Error}");
 			Console.WriteLine($"Combined results with failures will give failure: {combinedResultsWithFailuresUsingCustomSeparator.IsFailure}, with message (using custom separator): {combinedResultsWithFailuresUsingCustomSeparator.Error}");
+			Console.WriteLine();
+		}
+
+		private static void RunAdvancedResultExamples()
+		{
+			var validUserPrincipalNameResult = UserPrincipalName.Create("magenta@devtechgroup.onmicrosoft.com");
+			var inValidUserPrincipalNameResult = UserPrincipalName.Create("magenta@devtechgroup.com");
+
+			Console.WriteLine("Basic result examples:");
+			Console.WriteLine();
+
+			Console.WriteLine($"Valid user principal name is created successfully: {validUserPrincipalNameResult.IsSuccess}, with value: {validUserPrincipalNameResult.Value}");
+			Console.WriteLine($"Invalid user principal name creation has failed: {inValidUserPrincipalNameResult.IsFailure}, with message: {inValidUserPrincipalNameResult.Error}");
+			Console.WriteLine();
+
+			var validUserPrincipalNameResultIsSuccessful = validUserPrincipalNameResult.OnBoth(result => result.IsSuccess);
+			var invalidUserPrincipalNameResultIsSuccessful = inValidUserPrincipalNameResult.OnBoth(result => result.IsSuccess);
+			Console.WriteLine($"Valid user principal name is created successfully: {validUserPrincipalNameResultIsSuccessful}");
+			Console.WriteLine($"Invalid user principal name is created successfully: {invalidUserPrincipalNameResultIsSuccessful}");
 			Console.WriteLine();
 		}
 	}
